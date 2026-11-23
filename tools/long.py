@@ -10,6 +10,16 @@ reel.W, reel.H = 1920, 1080
 reel.GAP = 0.7
 reel.word_img.__defaults__ = (100,)
 
+_orig_render = reel.render_scene
+def _render_resume(job):
+    """Skip scenes already rendered (lets a long render resume after an interruption).
+    Delete build/scene_*.mp4 to force a re-render after changing a scene."""
+    out = f"{job[3]['build']}/scene_{job[0]['id']}.mp4"
+    if os.path.exists(out) and os.path.getsize(out) > 1000:
+        return out
+    return _orig_render(job)
+reel.render_scene = _render_resume
+
 _orig_main = reel.main
 def chapters():
     pj = os.path.abspath(sys.argv[1]); d = os.path.dirname(pj)
